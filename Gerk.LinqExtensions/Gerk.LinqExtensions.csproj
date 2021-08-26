@@ -10,10 +10,10 @@
 		<PackageProjectUrl>https://github.com/theGerk/LinqExtensions</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/theGerk/LinqExtensions</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageTags>Linq Extension IEnumerable</PackageTags>
+		<PackageTags>Now supports .Net Framework 4.5, for some reason.</PackageTags>
 		<PackageReleaseNotes>Unit tests coming soon.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>1.0.0</Version>
+		<Version>1.0.1</Version>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
