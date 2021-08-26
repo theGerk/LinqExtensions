@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Gerk.LinqExtensions
 {
+	/// <summary>
+	/// Contains Extension methods specifically dealing with asynchronous operations and IEnumerables
+	/// </summary>
 	public static class AsyncExtensions
 	{
 		/// <summary>
@@ -23,27 +26,23 @@ namespace Gerk.LinqExtensions
 				return await Task.WhenAll(self.Select(func));
 
 			var inputList = self.ToList();
-			var enumerator = inputList.GetEnumerator();
 			Out[] output = new Out[inputList.Count];
-			Func<int, Action<Out>> callbackGenerator = i => o => output[i] = o;
 			var tasks = new HashSet<Task>();
 
-			Action<In, int> startExecution = (val, i) =>
-			{
-				tasks.Add(func(val).Then(o => output[i] = o));
-			};
+			// Run the function on the idx'th element from the inpu tand then assign it into the output. This is all ecapsulated within a task that is put into our pool of tasks.
+			Action<int> startExecution = idx => tasks.Add(func(inputList[idx]).Then(o => output[idx] = o));
 
 			int i = 0;
 
-			for (; i < concurrencyLimit && enumerator.MoveNext(); i++)
+			for (; i < concurrencyLimit && i < inputList.Count; i++)
 			{
-				startExecution(enumerator.Current, i);
+				startExecution(i);
 			}
 
-			while (enumerator.MoveNext())
+			for (; i < inputList.Count; i++)
 			{
 				tasks.Remove(await Task.WhenAny(tasks));
-				startExecution(enumerator.Current, i++);
+				startExecution(i);
 			}
 
 			await Task.WhenAll(tasks);
