@@ -29,7 +29,7 @@ namespace Gerk.LinqExtensions
 			Out[] output = new Out[inputList.Count];
 			var tasks = new HashSet<Task>();
 
-			// Run the function on the idx'th element from the inpu tand then assign it into the output. This is all ecapsulated within a task that is put into our pool of tasks.
+			// Run the function on the idx'th element from the input and then assign it into the output. This is all ecapsulated within a task that is put into our pool of tasks.
 			Action<int> startExecution = idx => tasks.Add(func(inputList[idx]).Then(o => output[idx] = o));
 
 			int i = 0;
