@@ -10,7 +10,7 @@
 		<PackageProjectUrl>https://github.com/theGerk/LinqExtensions</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/theGerk/LinqExtensions</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageTags>Now supports .Net Framework 4.5, for some reason.</PackageTags>
+		<PackageTags>Linq Async</PackageTags>
 		<PackageReleaseNotes>Unit tests coming soon.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Version>1.2.1</Version>
