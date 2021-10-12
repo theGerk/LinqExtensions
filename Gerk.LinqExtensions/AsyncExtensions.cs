@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Gerk.LinqExtensions
@@ -20,17 +21,29 @@ namespace Gerk.LinqExtensions
 		/// <param name="func"><see langword="async"/> function that maps from elements of <paramref name="self"/> to an output type.</param>
 		/// <param name="concurrencyLimit">Maximum tasks to have running in parallel. A <c>0</c> will have no limit.</param>
 		/// <returns></returns>
-		public static async Task<Out[]> SelectAsync<In, Out>(this IEnumerable<In> self, Func<In, Task<Out>> func, int concurrencyLimit = 0)
+		public static Task<Out[]> SelectAsync<In, Out>(this IEnumerable<In> self, Func<In, Task<Out>> func, int concurrencyLimit = 0) => self.SelectAsync((x, _) => func(x), CancellationToken.None, concurrencyLimit);
+
+		/// <summary>
+		/// Runs an asynchronous function on each element of an enumerable. Ordering is maintained from input to output, but internal execution order is not gaurenteed to match this. This method does not support defered execution and will force execution on <paramref name="self"/>.
+		/// </summary>
+		/// <typeparam name="In">The input members (elements of <paramref name="self"/>)</typeparam>
+		/// <typeparam name="Out">The output type</typeparam>
+		/// <param name="self">List that we are starting with.</param>
+		/// <param name="func"><see langword="async"/> function that maps from elements of <paramref name="self"/> to an output type.</param>
+		/// <param name="cancellationToken">Cancellation token that will be passed to each call of <paramref name="func"/>. Triggering it will not immidately end execution of the function, however its calling will be passed on to each call.</param>
+		/// <param name="concurrencyLimit">Maximum tasks to have running in parallel. A <c>0</c> will have no limit.</param>
+		/// <returns></returns>
+		public static async Task<Out[]> SelectAsync<In, Out>(this IEnumerable<In> self, Func<In, CancellationToken, Task<Out>> func, CancellationToken cancellationToken, int concurrencyLimit = 0)
 		{
 			if (concurrencyLimit <= 0)
-				return await Task.WhenAll(self.Select(func));
+				return await Task.WhenAll(self.Select(x => func(x, cancellationToken)));
 
 			var inputList = self.ToList();
 			Out[] output = new Out[inputList.Count];
 			var tasks = new HashSet<Task>();
 
 			// Run the function on the idx'th element from the input and then assign it into the output. This is all ecapsulated within a task that is put into our pool of tasks.
-			Action<int> startExecution = idx => tasks.Add(func(inputList[idx]).Then(o => output[idx] = o));
+			Action<int> startExecution = idx => tasks.Add(func(inputList[idx], cancellationToken).Then(o => output[idx] = o));
 
 			int i = 0;
 
@@ -58,7 +71,7 @@ namespace Gerk.LinqExtensions
 		/// <param name="concurrencyLimit">Maximum tasks to have running in parallel. A <c>0</c> will have no limit.</param>
 		/// <returns></returns>
 		public static async Task ForEachAsync<In>(this IEnumerable<In> self, Func<In, Task> action, int concurrencyLimit = 0)
-        {
+		{
 			if (concurrencyLimit <= 0)
 			{
 				await Task.WhenAll(self.Select(action));
