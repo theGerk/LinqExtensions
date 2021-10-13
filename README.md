@@ -9,6 +9,9 @@ Runs asynchronous function on each element in the collection, projecting to some
 ### ForEachAsync
 Runs asynchronous function on each elment in the collection. Allows for a concurrency limit.
 
+### FindMatchAsync
+Runs asynchronous predicate on each element in a collection. Returns the first element found that matches, not nessicarily the earlist match in the collection.
+
 ---
 
 ## [EfficentLinq](https://github.com/theGerk/LinqExtensions/blob/master/Gerk.LinqExtensions/EfficentLinq.cs)
