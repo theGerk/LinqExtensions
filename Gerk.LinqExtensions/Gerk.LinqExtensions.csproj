@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.1;netstandard2.0;net461</TargetFrameworks>
+		<TargetFrameworks>netstandard2.1;netstandard2.0;net461;net45</TargetFrameworks>
 		<Authors>Benji Altman</Authors>
 		<Company></Company>
 		<Description>Gerk's Linq like Extension methods</Description>
