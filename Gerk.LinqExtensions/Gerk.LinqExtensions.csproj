@@ -13,7 +13,7 @@
 		<PackageTags>Linq Async</PackageTags>
 		<PackageReleaseNotes>Unit tests coming soon.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>1.2.1</Version>
+		<Version>1.2.2</Version>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
