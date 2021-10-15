@@ -13,12 +13,12 @@
 		<PackageTags>Linq Async</PackageTags>
 		<PackageReleaseNotes>Unit tests coming soon.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>1.2.2</Version>
+		<Version>1.2.3</Version>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AsyncThen" Version="1.0.2" />
+		<PackageReference Include="Gerk.AsyncThen" Version="2.0.1" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
 	</ItemGroup>
 
