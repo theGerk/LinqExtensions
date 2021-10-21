@@ -21,7 +21,7 @@ namespace Gerk.LinqExtensions
 		/// <param name="self">List that we are starting with.</param>
 		/// <param name="func"><see langword="async"/> function that maps from elements of <paramref name="self"/> to an output type.</param>
 		/// <returns></returns>
-		public static Task<Out[]> SelectAsync<In, Out>(this IEnumerable<In> self, Func<In, Task<Out>> func) => self.SelectAsync((x, _) => func(x), CancellationToken.None);
+		public static Task<Out[]> SelectAsync<In, Out>(this IEnumerable<In> self, Func<In, Task<Out>> func) => Task.WhenAll(self.Select(x => func(x)));
 
 		/// <summary>
 		/// Runs an asynchronous function on each element of an enumerable. Ordering is maintained from input to output, but internal execution order is not gaurenteed to match this. This method does not support defered execution and will force execution on <paramref name="self"/>.
@@ -32,37 +32,14 @@ namespace Gerk.LinqExtensions
 		/// <param name="func"><see langword="async"/> function that maps from elements of <paramref name="self"/> to an output type.</param>
 		/// <param name="concurrencyLimit">Maximum tasks to have running in parallel.</param>
 		/// <returns></returns>
-		public static Task<Out[]> SelectAsync<In, Out>(this IEnumerable<In> self, Func<In, Task<Out>> func, int concurrencyLimit) => self.SelectAsync((x, _) => func(x), CancellationToken.None, concurrencyLimit);
-
-		/// <summary>
-		/// Runs an asynchronous function on each element of an enumerable. Ordering is maintained from input to output, but internal execution order is not gaurenteed to match this. This method does not support defered execution and will force execution on <paramref name="self"/>.
-		/// </summary>
-		/// <typeparam name="In">The input members (elements of <paramref name="self"/>)</typeparam>
-		/// <typeparam name="Out">The output type</typeparam>
-		/// <param name="self">List that we are starting with.</param>
-		/// <param name="func"><see langword="async"/> function that maps from elements of <paramref name="self"/> to an output type.</param>
-		/// <param name="cancellationToken">Cancellation token that will be passed to each call of <paramref name="func"/></param>
-		/// <returns></returns>
-		public static async Task<Out[]> SelectAsync<In, Out>(this IEnumerable<In> self, Func<In, CancellationToken, Task<Out>> func, CancellationToken cancellationToken) => await Task.WhenAll(self.Select(x => func(x, cancellationToken)));
-
-		/// <summary>
-		/// Runs an asynchronous function on each element of an enumerable. Ordering is maintained from input to output, but internal execution order is not gaurenteed to match this. This method does not support defered execution and will force execution on <paramref name="self"/>.
-		/// </summary>
-		/// <typeparam name="In">The input members (elements of <paramref name="self"/>)</typeparam>
-		/// <typeparam name="Out">The output type</typeparam>
-		/// <param name="self">List that we are starting with.</param>
-		/// <param name="func"><see langword="async"/> function that maps from elements of <paramref name="self"/> to an output type.</param>
-		/// <param name="cancellationToken">Cancellation token that will be passed to each call of <paramref name="func"/></param>
-		/// <param name="concurrencyLimit">Maximum tasks to have running in parallel.</param>
-		/// <returns></returns>
-		public static async Task<Out[]> SelectAsync<In, Out>(this IEnumerable<In> self, Func<In, CancellationToken, Task<Out>> func, CancellationToken cancellationToken, int concurrencyLimit)
+		public static async Task<Out[]> SelectAsync<In, Out>(this IEnumerable<In> self, Func<In, Task<Out>> func, int concurrencyLimit)
 		{
 			var inputList = self.ToList();
 			Out[] output = new Out[inputList.Count];
 			var tasks = new HashSet<Task>();
 
 			// Run the function on the idx'th element from the input and then assign it into the output. This is all ecapsulated within a task that is put into our pool of tasks.
-			void startExecution(int idx) => tasks.Add(func(inputList[idx], cancellationToken).Then(o => output[idx] = o));
+			void startExecution(int idx) => tasks.Add(func(inputList[idx]).Then(o => output[idx] = o));
 
 			int i = 0;
 
@@ -86,57 +63,36 @@ namespace Gerk.LinqExtensions
 		/// <summary>
 		/// Runs an asynchronous function on each element of an enumerable. Execution order is not gaurenteed. This method does not support defered execution and will force execution on <paramref name="self"/>.
 		/// </summary>
-		/// <typeparam name="In">The input members (elements of <paramref name="self"/>)</typeparam>
+		/// <typeparam name="In">The input members (elements of <paramref name="self"/>).</typeparam>
 		/// <param name="self">Enumerable that we are starting with.</param>
-		/// <param name="action"><see langword="async"/> function that will act on each element of <paramref name="self"/></param>
+		/// <param name="action"><see langword="async"/> function that will act on each element of <paramref name="self"/>.</param>
 		/// <returns></returns>
-		public static Task ForEachAsync<In>(this IEnumerable<In> self, Func<In, Task> action) => self.ForEachAsync((x, _) => action(x), CancellationToken.None);
+		public static Task ForEachAsync<In>(this IEnumerable<In> self, Func<In, Task> action) => Task.WhenAll(self.Select(x => action(x)));
 
 		/// <summary>
 		/// Runs an asynchronous function on each element of an enumerable. Execution order is not gaurenteed. This method does not support defered execution and will force execution on <paramref name="self"/>.
 		/// </summary>
-		/// <typeparam name="In">The input members (elements of <paramref name="self"/>)</typeparam>
+		/// <typeparam name="In">The input members (elements of <paramref name="self"/>).</typeparam>
 		/// <param name="self">Enumerable that we are starting with.</param>
-		/// <param name="action"><see langword="async"/> function that will act on each element of <paramref name="self"/></param>
+		/// <param name="action"><see langword="async"/> function that will act on each element of <paramref name="self"/>.</param>
 		/// <param name="concurrencyLimit">Maximum tasks to have running in parallel.</param>
 		/// <returns></returns>
-		public static Task ForEachAsync<In>(this IEnumerable<In> self, Func<In, Task> action, int concurrencyLimit) => self.ForEachAsync((x, _) => action(x), CancellationToken.None, concurrencyLimit);
-
-		/// <summary>
-		/// Runs an asynchronous function on each element of an enumerable. Execution order is not gaurenteed. This method does not support defered execution and will force execution on <paramref name="self"/>.
-		/// </summary>
-		/// <typeparam name="In">The input members (elements of <paramref name="self"/>)</typeparam>
-		/// <param name="self">Enumerable that we are starting with.</param>
-		/// <param name="action"><see langword="async"/> function that will act on each element of <paramref name="self"/></param>
-		/// <param name="cancellationToken">Cancellation token that will be passed to each call of <paramref name="action"/></param>
-		/// <returns></returns>
-		public static async Task ForEachAsync<In>(this IEnumerable<In> self, Func<In, CancellationToken, Task> action, CancellationToken cancellationToken) => await Task.WhenAll(self.Select(x => action(x, cancellationToken)));
-
-		/// <summary>
-		/// Runs an asynchronous function on each element of an enumerable. Execution order is not gaurenteed. This method does not support defered execution and will force execution on <paramref name="self"/>.
-		/// </summary>
-		/// <typeparam name="In">The input members (elements of <paramref name="self"/>)</typeparam>
-		/// <param name="self">Enumerable that we are starting with.</param>
-		/// <param name="action"><see langword="async"/> function that will act on each element of <paramref name="self"/></param>
-		/// <param name="cancellationToken">Cancellation token that will be passed to each call of <paramref name="action"/></param>
-		/// <param name="concurrencyLimit">Maximum tasks to have running in parallel.</param>
-		/// <returns></returns>
-		public static async Task ForEachAsync<In>(this IEnumerable<In> self, Func<In, CancellationToken, Task> action, CancellationToken cancellationToken, int concurrencyLimit)
+		public static async Task ForEachAsync<In>(this IEnumerable<In> self, Func<In, Task> action, int concurrencyLimit)
 		{
-			var inputList = self.ToList();
+			var inputEnumerator = self.GetEnumerator();
 			var tasks = new HashSet<Task>();
 
 			int i = 0;
 
-			for (; i < concurrencyLimit && i < inputList.Count; i++)
+			for (; i < concurrencyLimit && inputEnumerator.MoveNext(); i++)
 			{
-				tasks.Add(action(inputList[i], cancellationToken));
+				tasks.Add(action(inputEnumerator.Current));
 			}
 
-			for (; i < inputList.Count; i++)
+			for (; inputEnumerator.MoveNext(); i++)
 			{
 				tasks.Remove(await Task.WhenAny(tasks));
-				tasks.Add(action(inputList[i], cancellationToken));
+				tasks.Add(action(inputEnumerator.Current));
 			}
 
 			await Task.WhenAll(tasks);
@@ -144,7 +100,15 @@ namespace Gerk.LinqExtensions
 		#endregion
 
 		#region FindMatch
-		private static async Task<(In Value, bool Found)> FindMatchAsyncHelper<In>(Func<Func<In, Task>, Task> forEach, Func<In, CancellationToken, Task<bool>> predicate, CancellationToken cancellationToken)
+		/// <summary>
+		/// Helper function for for FindMatchAsync overloads that accept a <see cref="CancellationToken"/>.
+		/// </summary>
+		/// <typeparam name="In">Underlying elments type that we act on.</typeparam>
+		/// <param name="forEach">This is a function that will apply a function to each element in a collection with whatever concurrency limiting or what that collection is already built in.</param>
+		/// <param name="predicate">An asynchronous predicate. Takes in an element of type <typeparamref name="In"/> and returns a <see cref="bool"/> and can be cancled using its second argument of a <see cref="CancellationToken"/>.</param>
+		/// <param name="cancellationToken">A cancelation token.</param>
+		/// <returns>Task with the result.</returns>
+		private static async Task<(In Value, bool Found)> FindMatchAsyncHelper<In>(Func<Func<In, Task>, Task> forEach, Func<In, CancellationToken, Task<bool>> predicate, CancellationToken cancellationToken = default)
 		{
 			using (CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
 			{
@@ -173,6 +137,24 @@ namespace Gerk.LinqExtensions
 			}
 		}
 
+		/// <summary>
+		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match.
+		/// </summary>
+		/// <typeparam name="In">The input members (elements of <paramref name="self"/>).</typeparam>
+		/// <param name="self">Enumerable that we are starting with.</param>
+		/// <param name="predicate"><see langword="async"/> predicate function that will be applyed to elements of <paramref name="self"/>.</param>
+		/// <returns>
+		///		<list type="bullet">
+		///			<item>
+		///				<term>Value</term>
+		///				<description>The element that was matched (if there was a match).</description>
+		///			</item>	
+		///			<item>
+		///				<term>Found</term>
+		///				<description>Whether or not there is a match at all.</description>
+		///			</item>
+		///		</list>
+		/// </returns>
 		public static Task<(In Value, bool Found)> FindMatchAsync<In>(this IEnumerable<In> self, Func<In, Task<bool>> predicate)
 		{
 			var tcs = new TaskCompletionSource<(In, bool)>();
@@ -200,6 +182,25 @@ namespace Gerk.LinqExtensions
 			return tcs.Task;
 		}
 
+		/// <summary>
+		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match.
+		/// </summary>
+		/// <typeparam name="In">The input members (elements of <paramref name="self"/>).</typeparam>
+		/// <param name="self">Enumerable that we are starting with.</param>
+		/// <param name="predicate"><see langword="async"/> predicate function that will be applyed to elements of <paramref name="self"/>.</param>
+		/// <param name="concurrencyLimit">Number of instances of <paramref name="predicate"/></param>
+		/// <returns>
+		///		<list type="bullet">
+		///			<item>
+		///				<term>Value</term>
+		///				<description>The element that was matched (if there was a match).</description>
+		///			</item>	
+		///			<item>
+		///				<term>Found</term>
+		///				<description>Whether or not there is a match at all.</description>
+		///			</item>
+		///		</list>
+		/// </returns>
 		public static async Task<(In Value, bool Found)> FindMatchAsync<In>(this IEnumerable<In> self, Func<In, Task<bool>> predicate, int concurrencyLimit)
 		{
 			var tasks = new HashSet<Task<(In Value, bool Found)>>(concurrencyLimit);
@@ -237,13 +238,48 @@ namespace Gerk.LinqExtensions
 			return (default, false);
 		}
 
-		public static Task<(In Value, bool Found)> FindMatchAsync<In>(this IEnumerable<In> self, Func<In, CancellationToken, Task<bool>> predicate) => self.FindMatchAsync(predicate, CancellationToken.None);
+		/// <summary>
+		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match.
+		/// </summary>
+		/// <typeparam name="In">The input members (elements of <paramref name="self"/>).</typeparam>
+		/// <param name="self">Enumerable that we are starting with.</param>
+		/// <param name="predicate"><see langword="async"/> predicate function that will be applyed to elements of <paramref name="self"/>.</param>
+		/// <param name="cancellationToken">Cancelation token to cancel the entire process.</param>
+		/// <returns>
+		///		<list type="bullet">
+		///			<item>
+		///				<term>Value</term>
+		///				<description>The element that was matched (if there was a match).</description>
+		///			</item>	
+		///			<item>
+		///				<term>Found</term>
+		///				<description>Whether or not there is a match at all.</description>
+		///			</item>
+		///		</list>
+		/// </returns>
+		public static Task<(In Value, bool Found)> FindMatchAsync<In>(this IEnumerable<In> self, Func<In, CancellationToken, Task<bool>> predicate, CancellationToken cancellationToken = default) => FindMatchAsyncHelper(f => self.ForEachAsync(f), predicate, cancellationToken);
 
-		public static Task<(In Value, bool Found)> FindMatchAsync<In>(this IEnumerable<In> self, Func<In, CancellationToken, Task<bool>> predicate, int concurrencyLimit) => self.FindMatchAsync(predicate, CancellationToken.None, concurrencyLimit);
-
-		public static Task<(In Value, bool Found)> FindMatchAsync<In>(this IEnumerable<In> self, Func<In, CancellationToken, Task<bool>> predicate, CancellationToken cancellationToken) => FindMatchAsyncHelper(f => self.ForEachAsync(f), predicate, cancellationToken);
-
-		public static Task<(In Value, bool Found)> FindMatchAsync<In>(this IEnumerable<In> self, Func<In, CancellationToken, Task<bool>> predicate, CancellationToken cancellationToken, int concurrencyLimit) => FindMatchAsyncHelper(f => self.ForEachAsync(f, concurrencyLimit), predicate, cancellationToken);
+		/// <summary>
+		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match.
+		/// </summary>
+		/// <typeparam name="In">The input members (elements of <paramref name="self"/>).</typeparam>
+		/// <param name="self">Enumerable that we are starting with.</param>
+		/// <param name="predicate"><see langword="async"/> predicate function that will be applyed to elements of <paramref name="self"/>.</param>
+		/// <param name="cancellationToken">Cancelation token to cancel the entire process.</param>
+		/// <param name="concurrencyLimit">Number of instances of <paramref name="predicate"/></param>
+		/// <returns>
+		///		<list type="bullet">
+		///			<item>
+		///				<term>Value</term>
+		///				<description>The element that was matched (if there was a match).</description>
+		///			</item>	
+		///			<item>
+		///				<term>Found</term>
+		///				<description>Whether or not there is a match at all.</description>
+		///			</item>
+		///		</list>
+		/// </returns>
+		public static Task<(In Value, bool Found)> FindMatchAsync<In>(this IEnumerable<In> self, Func<In, CancellationToken, Task<bool>> predicate, int concurrencyLimit, CancellationToken cancellationToken = default) => FindMatchAsyncHelper(f => self.ForEachAsync(f, concurrencyLimit), predicate, cancellationToken);
 		#endregion
 	}
 }
