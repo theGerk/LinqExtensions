@@ -12,6 +12,16 @@ namespace Gerk.LinqExtensions
 	/// </summary>
 	public static class AsyncExtensions
 	{
+		#region Other
+		// Maybe in the future this can be removed and replaced with a normal new HashSet<T>(capacity)
+		private static HashSet<T> MakeHashSetWithCapacity<T>(int capacity)
+			=> new HashSet<T>(
+#if NETSTANDARD2_1_OR_GREATER
+				capacity
+#endif
+			);
+		#endregion
+
 		#region SelectAsync
 		/// <summary>
 		/// Runs an asynchronous function on each element of an enumerable. Ordering is maintained from input to output, but internal execution order is not gaurenteed to match this. This method does not support defered execution and will force execution on <paramref name="self"/>.
@@ -36,7 +46,7 @@ namespace Gerk.LinqExtensions
 		{
 			var inputList = self.ToList();
 			Out[] output = new Out[inputList.Count];
-			var tasks = new HashSet<Task>();
+			var tasks = MakeHashSetWithCapacity<Task>(concurrencyLimit);
 
 			// Run the function on the idx'th element from the input and then assign it into the output. This is all ecapsulated within a task that is put into our pool of tasks.
 			void startExecution(int idx) => tasks.Add(func(inputList[idx]).Then(o => output[idx] = o));
@@ -80,7 +90,7 @@ namespace Gerk.LinqExtensions
 		public static async Task ForEachAsync<In>(this IEnumerable<In> self, Func<In, Task> action, int concurrencyLimit)
 		{
 			var inputEnumerator = self.GetEnumerator();
-			var tasks = new HashSet<Task>();
+			var tasks = MakeHashSetWithCapacity<Task>(concurrencyLimit);
 
 			int i = 0;
 
@@ -203,7 +213,8 @@ namespace Gerk.LinqExtensions
 		/// </returns>
 		public static async Task<(In Value, bool Found)> FindMatchAsync<In>(this IEnumerable<In> self, Func<In, Task<bool>> predicate, int concurrencyLimit)
 		{
-			var tasks = new HashSet<Task<(In Value, bool Found)>>(concurrencyLimit);
+			var tasks = MakeHashSetWithCapacity<Task<(In Value, bool Found)>>(concurrencyLimit);
+
 			void startNextTask(In elem) => tasks.Add(predicate(elem).Then(x => (elem, x)));
 			async Task<(In Value, bool Found)> completeATask()
 			{
