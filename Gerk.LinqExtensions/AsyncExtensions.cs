@@ -149,6 +149,7 @@ namespace Gerk.LinqExtensions
 
 		/// <summary>
 		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match.
+		/// <para>This will create tasks that are simply abanoned when the match has been found. This is better if <paramref name="predicate"/> isn't a particularly heavy workload. If <paramref name="predicate"/> is a heavy workload and can be cancled use <see cref="FindMatchAsync{In}(IEnumerable{In}, Func{In, CancellationToken, Task{bool}}, CancellationToken)"/> instead.</para>
 		/// </summary>
 		/// <typeparam name="In">The input members (elements of <paramref name="self"/>).</typeparam>
 		/// <param name="self">Enumerable that we are starting with.</param>
@@ -193,8 +194,9 @@ namespace Gerk.LinqExtensions
 		}
 
 		/// <summary>
-		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match.
+		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match. Will never run more than <paramref name="concurrencyLimit"/> copies of <paramref name="predicate"/> at a time.
 		/// </summary>
+		/// <para>This will cancel tasks once the result has been found. This is better if <paramref name="predicate"/> is a heavier workload as triggering the cancelation can itself be expensive. If <paramref name="predicate"/> isn't a heavy workload use <see cref="FindMatchAsync{In}(IEnumerable{In}, Func{In, Task{bool}})"/> instead.</para>
 		/// <typeparam name="In">The input members (elements of <paramref name="self"/>).</typeparam>
 		/// <param name="self">Enumerable that we are starting with.</param>
 		/// <param name="predicate"><see langword="async"/> predicate function that will be applyed to elements of <paramref name="self"/>.</param>
@@ -251,6 +253,7 @@ namespace Gerk.LinqExtensions
 
 		/// <summary>
 		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match.
+		/// <para>This will cancel tasks once the result has been found. This is better if <paramref name="predicate"/> is a heavier workload as triggering the cancelation can itself be expensive. If <paramref name="predicate"/> isn't a heavy workload use <see cref="FindMatchAsync{In}(IEnumerable{In}, Func{In, Task{bool}})"/> instead.</para>
 		/// </summary>
 		/// <typeparam name="In">The input members (elements of <paramref name="self"/>).</typeparam>
 		/// <param name="self">Enumerable that we are starting with.</param>
@@ -271,8 +274,9 @@ namespace Gerk.LinqExtensions
 		public static Task<(In Value, bool Found)> FindMatchAsync<In>(this IEnumerable<In> self, Func<In, CancellationToken, Task<bool>> predicate, CancellationToken cancellationToken = default) => FindMatchAsyncHelper(f => self.ForEachAsync(f), predicate, cancellationToken);
 
 		/// <summary>
-		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match.
+		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match. Will never run more than <paramref name="concurrencyLimit"/> copies of <paramref name="predicate"/> at a time.
 		/// </summary>
+		/// <para>This will cancel tasks once the result has been found. This is better if <paramref name="predicate"/> is a heavier workload as triggering the cancelation can itself be expensive. If <paramref name="predicate"/> isn't a heavy workload use <see cref="FindMatchAsync{In}(IEnumerable{In}, Func{In, Task{bool}}, int)"/> instead.</para>
 		/// <typeparam name="In">The input members (elements of <paramref name="self"/>).</typeparam>
 		/// <param name="self">Enumerable that we are starting with.</param>
 		/// <param name="predicate"><see langword="async"/> predicate function that will be applyed to elements of <paramref name="self"/>.</param>
