@@ -40,5 +40,22 @@ namespace Gerk.LinqExtensions
 			output.AddRange(self);
 			return output;
 		}
+
+		public static (T Value, bool Exists) FirstIfExists<T>(this IEnumerable<T> self, Predicate<T> predicate)
+		{
+			foreach (var item in self)
+				if (predicate(item))
+					return (item, true);
+			return (default, false);
+		}
+		public static (T Value, bool Exists) LastIfExists<T>(this IEnumerable<T> self, Predicate<T> predicate)
+		{
+			T value = default;
+			bool found = false;
+			foreach (var item in self)
+				if (predicate(item))
+					(value, found) = (item, true);
+			return (value, found);
+		}
 	}
 }
