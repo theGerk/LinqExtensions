@@ -23,6 +23,12 @@ Takes a length argument to create an array without having to resize. Saves on ha
 ### ToList
 Takes a length argument to create a list without having to resize. Saves on having to resize the List.
 
+### FirstIfExists
+Identical to FirstOrDefault except it returns a tuple with a return element and a boolean to indicate if there was an element found.
+
+### LastIfExists
+Identical to LastOrDefault except it returns a tuple with a return element and a boolean to indicate if there was an element found.
+
 ---
 
 ## [EnumeratorEnumerable](https://github.com/theGerk/LinqExtensions/blob/master/Gerk.LinqExtensions/EnumeratorEnumerable.cs)
