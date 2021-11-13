@@ -61,7 +61,8 @@ namespace Gerk.LinqExtensions
 		/// Gets the first element for which <paramref name="predicate"/> returns <see langword="true"/> if there is one.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="self">A function to limit which elements of <paramref name="self"/> count.</param>
+		/// <param name="self"></param>
+		/// <param name="predicate">A function to limit which elements of <paramref name="self"/> count.</param>
 		/// <returns>
 		///		<para>Value: The value of the first element, default if it does not exist.</para>
 		///		<para>Exists: Was a value found?</para>
@@ -96,7 +97,8 @@ namespace Gerk.LinqExtensions
 		/// Gets the last element for which <paramref name="predicate"/> returns <see langword="true"/> if there is one.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="self">A function to limit which elements of <paramref name="self"/> count.</param>
+		/// <param name="self"></param>
+		/// <param name="predicate">A function to limit which elements of <paramref name="self"/> count.</param>
 		/// <returns>
 		///		<para>Value: The value of the last element, default if it does not exist.</para>
 		///		<para>Exists: Was a value found?</para>
