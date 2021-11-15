@@ -41,6 +41,8 @@ namespace Gerk.LinqExtensions
 			return output;
 		}
 
+
+#if NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER //ValueTuples
 		/// <summary>
 		/// Gets the first element if there is one.
 		/// </summary>
@@ -111,6 +113,97 @@ namespace Gerk.LinqExtensions
 				if (predicate(item))
 					(value, found) = (item, true);
 			return (value, found);
+		}
+
+		/// <summary>
+		/// Gets the first element if there is one.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="self"></param>
+		/// <returns>
+		///		<para>Value: The value of the first element, default if it does not exist.</para>
+		///		<para>Exists: Was a value found?</para>
+		/// </returns>
+		public static bool TryFirst<T>(this IEnumerable<T> self, out T value)
+		{
+			foreach (var item in self)
+			{
+				value = item;
+				return true;
+			}
+			value = default;
+			return false;
+		}
+#endif
+
+		/// <summary>
+		/// Gets the first element for which <paramref name="predicate"/> returns <see langword="true"/> if there is one.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="self"></param>
+		/// <param name="predicate">A function to limit which elements of <paramref name="self"/> count.</param>
+		/// <returns>
+		///		<para>Value: The value of the first element, default if it does not exist.</para>
+		///		<para>Exists: Was a value found?</para>
+		/// </returns>
+		public static bool TryFirst<T>(this IEnumerable<T> self, Predicate<T> predicate, out T value)
+		{
+			foreach (var item in self)
+			{
+				if (predicate(item))
+				{
+					value = item;
+					return true;
+				}
+			}
+			value = default;
+			return false;
+		}
+
+		/// <summary>
+		/// Gets the last element if there is one.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="self"></param>
+		/// <returns>
+		///		<para>Value: The value of the last element, default if it does not exist.</para>
+		///		<para>Exists: Was a value found?</para>
+		/// </returns>
+		public static bool TryLast<T>(this IEnumerable<T> self, out T value)
+		{
+			value = default;
+			bool found = false;
+			foreach (var item in self)
+			{
+				value = item;
+				found = true;
+			}
+			return found;
+		}
+
+		/// <summary>
+		/// Gets the last element for which <paramref name="predicate"/> returns <see langword="true"/> if there is one.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="self"></param>
+		/// <param name="predicate">A function to limit which elements of <paramref name="self"/> count.</param>
+		/// <returns>
+		///		<para>Value: The value of the last element, default if it does not exist.</para>
+		///		<para>Exists: Was a value found?</para>
+		/// </returns>
+		public static bool TryLast<T>(this IEnumerable<T> self, Predicate<T> predicate, out T value)
+		{
+			value = default;
+			bool found = false;
+			foreach (var item in self)
+			{
+				if (predicate(item))
+				{
+					value = item;
+					found = true;
+				}
+			}
+			return found;
 		}
 	}
 }

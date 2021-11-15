@@ -127,6 +127,7 @@
 		#endregion
 
 		#region FindMatch
+#if NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER //ValueTuples
 		/// <summary>
 		/// Finds an element in <paramref name="self"/> that returns true from <paramref name="predicate"/>. This is always the first element found, not nessicarily the first element in <paramref name="self"/> that match.
 		/// <para>This will not cancel tasks once the result has been found, they will just run in the background.</para>
@@ -195,6 +196,7 @@
 			}, concurrencyLimit, breakToken).Then(() => tcs.TrySetResult((default, false)));
 			return tcs.Task;
 		}
-		#endregion
+#endif
+#endregion
 	}
 }
